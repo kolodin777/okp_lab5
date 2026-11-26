@@ -61,8 +61,38 @@ void MainWindow::setupUi()
 
     m_status = new QLabel(this);
     m_rootLayout->addWidget(m_status);
+    connect(m_addBtn, &QPushButton::clicked, this, &MainWindow::addItem);
+    connect(m_removeBtn, &QPushButton::clicked, this, &MainWindow::removeSelected);
+    connect(m_clearBtn, &QPushButton::clicked, this, &MainWindow::clearAll);
+    connect(m_input, &QLineEdit::returnPressed, this, &MainWindow::addItem);
 }
 
 void MainWindow::refreshStatus() {
     m_status->setText(QStringLiteral("Всего элементов: %1").arg(m_model->rowCount()));
+}
+void MainWindow::addItem()
+{
+    const QString text = m_input->text().trimmed();
+    if (text.isEmpty()) return;
+
+    const int row = m_model->rowCount();
+    m_model->insertRow(row);
+    m_model->setData(m_model->index(row, 0), text, Qt::EditRole);
+    m_input->clear();
+    refreshStatus();
+}
+
+void MainWindow::removeSelected()
+{
+    QModelIndexList selected = m_view->selectionModel()->selectedIndexes();
+    if (selected.isEmpty()) return;
+
+    m_model->removeRow(selected.first().row());
+    refreshStatus();
+}
+
+void MainWindow::clearAll()
+{
+    m_model->setStringList({});
+    refreshStatus();
 }
